@@ -22,6 +22,7 @@ const tempWatchedData = [
     userRating: 9,
   },
 ];
+``;
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -29,7 +30,7 @@ const average = (arr) =>
 const API_KEY = "c80f733f";
 
 export default function App() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState("interstellar");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState(tempWatchedData);
   const [isOpen1, setIsOpen1] = useState(true);
@@ -41,36 +42,46 @@ export default function App() {
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
-  useEffect(function () {
-    async function fetchMovies() {
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${API_KEY}&s=interstellar`,
-        );
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        setIsLoading(true);
+        try {
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`,
+          );
 
-        if (!res.ok) {
-          throw new Error("Something went wrong in fetch movies!");
+          if (!res.ok) {
+            throw new Error("Something went wrong in fetch movies!");
+          }
+
+          const data = await res.json();
+          if (!data.Response) {
+            throw new Error("Movies not found!");
+          }
+
+          setMovies(data.Search);
+        } catch (error) {
+          console.log(error);
+          setError(error.message);
+        } finally {
+          setIsLoading(false);
         }
-
-        const data = await res.json();
-        if (!data.Response) {
-          throw new Error("Movies not found!");
-        }
-
-        setMovies(data.Search);
-      } catch (error) {
-        console.log(error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
       }
-    }
-    fetchMovies();
-  }, []);
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+    },
+    [query],
+  );
 
   return (
-    <>
+    <div className="wrapper">
       <Navbar>
         <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
@@ -92,7 +103,7 @@ export default function App() {
           <WatchedMoviesList watched={watched} />
         </Box>
       </Main>
-    </>
+    </div>
   );
 }
 
@@ -139,7 +150,7 @@ function Search({ query, setQuery }) {
 function NumResults({ movies }) {
   return (
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{movies?.length || 0}</strong> results
     </p>
   );
 }
@@ -147,8 +158,8 @@ function NumResults({ movies }) {
 function MoviesList({ movies }) {
   return (
     <ul className="list">
-      {movies?.map((movie) => (
-        <li key={movie.imdbID}>
+      {movies?.map((movie, idx) => (
+        <li key={idx}>
           <img src={movie.Poster} alt={`${movie.Title} poster`} />
           <h3>{movie.Title}</h3>
           <div>
@@ -203,8 +214,8 @@ function WatchedSummary({ watched, avgImdbRating, avgRuntime, avgUserRating }) {
 function WatchedMoviesList({ watched }) {
   return (
     <ul className="list">
-      {watched.map((movie) => (
-        <li key={movie.imdbID}>
+      {watched.map((movie, idx) => (
+        <li key={idx}>
           <img src={movie.Poster} alt={`${movie.Title} poster`} />
           <h3>{movie.Title}</h3>
           <div>
