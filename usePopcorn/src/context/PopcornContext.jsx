@@ -3,30 +3,6 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 
 const PopcornContext = createContext();
 
-const tempWatchedData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-    runtime: 148,
-    imdbRating: 8.8,
-    userRating: 10,
-  },
-  {
-    imdbID: "tt0088763",
-    Title: "Back to the Future",
-    Year: "1985",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-    runtime: 116,
-    imdbRating: 8.5,
-    userRating: 9,
-  },
-];
-``;
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
@@ -35,7 +11,7 @@ const KEY = "c80f733f";
 const initialState = {
   query: "interstellar",
   movies: [],
-  watched: tempWatchedData,
+  watched: [],
   isOpen1: true,
   isOpen2: true,
   isLoading1: false,
@@ -69,6 +45,15 @@ const reducer = (state, action) => {
       return { ...state, error: action.payload };
     case "SET_MOVIE":
       return { ...state, movie: action.payload };
+    case "ADD_WATCHED":
+      return { ...state, watched: [...state.watched, action.payload] };
+    case "DELETE_WATCHED":
+      return {
+        ...state,
+        watched: state.watched.filter(
+          (movie) => movie.imdbId !== action.payload,
+        ),
+      };
     default:
       throw new Error("Unknown action type!");
   }
